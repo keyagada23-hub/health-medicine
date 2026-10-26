@@ -1,0 +1,12 @@
+# Dependencies
+node_modules/
+
+# Local Environment Variables (Keep your local passwords private)
+.env
+
+# Java compiled binaries
+*.class
+
+# Logs
+*.log
+npm-debug.log*

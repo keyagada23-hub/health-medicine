@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health & Medicine Management System</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div class="brand-text">
+                    <h2>MediSync</h2>
+                    <span>Health Management</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="dashboard">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" data-tab="users">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Patients (Users)</span>
+                </button>
+                <button class="nav-item" data-tab="doctors">
+                    <i class="fa-solid fa-user-doctor"></i>
+                    <span>Doctors</span>
+                </button>
+                <button class="nav-item" data-tab="medicines">
+                    <i class="fa-solid fa-pills"></i>
+                    <span>Medicines Inventory</span>
+                </button>
+                <button class="nav-item" data-tab="prescriptions">
+                    <i class="fa-solid fa-file-prescription"></i>
+                    <span>Prescriptions</span>
+                </button>
+                <button class="nav-item" data-tab="reminders">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Dose Reminders</span>
+                </button>
+                <button class="nav-item" data-tab="analytics">
+                    <i class="fa-solid fa-database"></i>
+                    <span>SQL Analytics & Reports</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="connection-card">
+                    <div class="status-indicator">
+                        <span class="pulse-dot" id="dbPulse"></span>
+                        <span class="status-label" id="dbStatusText">MySQL Connected</span>
+                    </div>
+                    <div class="db-details">
+                        <small>Database: <strong>medicine_management</strong></small>
+                        <small>Host: <strong>localhost:3306</strong></small>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <div class="page-title-box">
+                    <h1 id="pageTitle">Dashboard Overview</h1>
+                    <p id="pageSubtitle">Live health records and medicine management system</p>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-secondary" onclick="refreshCurrentTab()">
+                        <i class="fa-solid fa-rotate-right"></i> Refresh
+                    </button>
+                    <button class="btn btn-primary" id="quickActionBtn" onclick="openQuickActionModal()">
+                        <i class="fa-solid fa-plus"></i> Quick Action
+                    </button>
+                </div>
+            </header>
+
+            <!-- TAB 1: DASHBOARD -->
+            <section class="tab-pane active" id="tab-dashboard">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card stat-teal">
+                        <div class="stat-icon"><i class="fa-solid fa-hospital-user"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">Total Patients</span>
+                            <h3 class="stat-value" id="statUsers">-</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-blue">
+                        <div class="stat-icon"><i class="fa-solid fa-user-doctor"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">Doctors</span>
+                            <h3 class="stat-value" id="statDoctors">-</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-indigo">
+                        <div class="stat-icon"><i class="fa-solid fa-capsules"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">Medicines</span>
+                            <h3 class="stat-value" id="statMedicines">-</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-green">
+                        <div class="stat-icon"><i class="fa-solid fa-file-medical"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">Active Prescriptions</span>
+                            <h3 class="stat-value" id="statActivePrescriptions">-</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-amber">
+                        <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">Low Stock (<60)</span>
+                            <h3 class="stat-value" id="statLowStock">-</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-purple">
+                        <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">Pending Reminders</span>
+                            <h3 class="stat-value" id="statPendingReminders">-</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Split: Recent Prescriptions & Reminders -->
+                <div class="dashboard-split">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-left">
+                                <i class="fa-solid fa-receipt"></i>
+                                <h3>Active Prescriptions</h3>
+                            </div>
+                            <button class="btn btn-sm btn-outline" onclick="switchTab('prescriptions')">View All</button>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table" id="dashboardPrescriptionsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Patient</th>
+                                        <th>Doctor</th>
+                                        <th>Medicine</th>
+                                        <th>Dosage</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td colspan="5" class="loading-cell">Loading active prescriptions...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="header-left">
+                                <i class="fa-solid fa-bell"></i>
+                                <h3>Upcoming Dose Reminders</h3>
+                            </div>
+                            <button class="btn btn-sm btn-outline" onclick="switchTab('reminders')">View All</button>
+                        </div>
+                        <div class="reminders-list" id="dashboardRemindersList">
+                            <div class="loading-state">Loading reminders...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: PATIENTS (USERS) -->
+            <section class="tab-pane" id="tab-users">
+                <div class="card">
+                    <div class="card-header flex-wrap">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="usersSearchInput" placeholder="Search patients by name, phone, or email..." oninput="handleUsersSearch()">
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-primary" onclick="openAddUserModal()">
+                                <i class="fa-solid fa-user-plus"></i> Add New Patient
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>DOB</th>
+                                    <th>Address</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="7" class="loading-cell">Loading patient records...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: DOCTORS -->
+            <section class="tab-pane" id="tab-doctors">
+                <div class="card">
+                    <div class="card-header flex-wrap">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="doctorsSearchInput" placeholder="Search doctor by name or specialization..." oninput="handleDoctorsSearch()">
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-primary" onclick="openAddDoctorModal()">
+                                <i class="fa-solid fa-plus"></i> Add New Doctor
+                            </button>
+                        </div>
+                    </div>
+                    <div class="doctors-grid" id="doctorsGrid">
+                        <div class="loading-state">Loading doctors...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: MEDICINES -->
+            <section class="tab-pane" id="tab-medicines">
+                <div class="card">
+                    <div class="card-header flex-wrap">
+                        <div class="filter-group">
+                            <button class="filter-pill active" onclick="filterMedicines('all', this)">All Medicines</button>
+                            <button class="filter-pill warning-pill" onclick="filterMedicines('lowStock', this)">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Low Stock (&lt;60)
+                            </button>
+                        </div>
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="medicinesSearchInput" placeholder="Search medicine name or brand..." oninput="handleMedicinesSearch()">
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-primary" onclick="openAddMedicineModal()">
+                                <i class="fa-solid fa-plus"></i> Add Medicine
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="medicinesTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Medicine Name</th>
+                                    <th>Brand</th>
+                                    <th>Expiry Date</th>
+                                    <th>Stock Level</th>
+                                    <th>Unit Price</th>
+                                    <th>Quick Adjust</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="8" class="loading-cell">Loading medicines...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: PRESCRIPTIONS -->
+            <section class="tab-pane" id="tab-prescriptions">
+                <div class="card">
+                    <div class="card-header flex-wrap">
+                        <div class="filter-group">
+                            <button class="filter-pill active" onclick="filterPrescriptions('', this)">All</button>
+                            <button class="filter-pill" onclick="filterPrescriptions('Active', this)">Active</button>
+                            <button class="filter-pill" onclick="filterPrescriptions('Completed', this)">Completed</button>
+                            <button class="filter-pill" onclick="filterPrescriptions('Cancelled', this)">Cancelled</button>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-primary" onclick="openAddPrescriptionModal()">
+                                <i class="fa-solid fa-plus"></i> Issue New Prescription
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="prescriptionsTable">
+                            <thead>
+                                <tr>
+                                    <th>Prescription ID</th>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Medicine & Brand</th>
+                                    <th>Date Issued</th>
+                                    <th>Dosage</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="9" class="loading-cell">Loading prescriptions...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 6: REMINDERS -->
+            <section class="tab-pane" id="tab-reminders">
+                <div class="card">
+                    <div class="card-header flex-wrap">
+                        <div class="filter-group">
+                            <button class="filter-pill active" onclick="filterReminders('', this)">All</button>
+                            <button class="filter-pill" onclick="filterReminders('Pending', this)">Pending</button>
+                            <button class="filter-pill" onclick="filterReminders('Sent', this)">Sent</button>
+                            <button class="filter-pill" onclick="filterReminders('Completed', this)">Completed</button>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-primary" onclick="openAddReminderModal()">
+                                <i class="fa-solid fa-plus"></i> Add Dose Reminder
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="remindersTable">
+                            <thead>
+                                <tr>
+                                    <th>Reminder ID</th>
+                                    <th>Patient</th>
+                                    <th>Medicine / Dosage</th>
+                                    <th>Scheduled Time</th>
+                                    <th>Message</th>
+                                    <th>Status</th>
+                                    <th>Quick Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="8" class="loading-cell">Loading reminders...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 7: SQL ANALYTICS & REPORTS -->
+            <section class="tab-pane" id="tab-analytics">
+                <div class="analytics-container">
+                    <!-- Stock Summary Banner -->
+                    <div class="card banner-card">
+                        <div class="banner-content">
+                            <div>
+                                <h2>Medicine Inventory & Pricing Statistics</h2>
+                                <p>Live SQL aggregation queries from MySQL</p>
+                            </div>
+                            <div class="banner-metrics" id="stockOverviewMetrics">
+                                <div class="metric-box">
+                                    <span class="m-label">Total Stock Units</span>
+                                    <h4 id="analyticsTotalStock">-</h4>
+                                </div>
+                                <div class="metric-box">
+                                    <span class="m-label">Average Price</span>
+                                    <h4 id="analyticsAvgPrice">-</h4>
+                                </div>
+                                <div class="metric-box">
+                                    <span class="m-label">Price Range</span>
+                                    <h4 id="analyticsPriceRange">-</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Split Analytics -->
+                    <div class="analytics-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="header-left">
+                                    <i class="fa-solid fa-chart-bar"></i>
+                                    <h3>Most Prescribed Medicines</h3>
+                                </div>
+                                <span class="badge badge-info">GROUP BY medicine</span>
+                            </div>
+                            <div class="analytics-list" id="topPrescribedList">
+                                <div class="loading-state">Loading data...</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="header-left">
+                                    <i class="fa-solid fa-user-doctor"></i>
+                                    <h3>Doctor Prescription Load</h3>
+                                </div>
+                                <span class="badge badge-info">GROUP BY doctor</span>
+                            </div>
+                            <div class="analytics-list" id="doctorActivityList">
+                                <div class="loading-state">Loading data...</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="header-left">
+                                    <i class="fa-solid fa-clipboard-user"></i>
+                                    <h3>Prescriptions per Patient</h3>
+                                </div>
+                                <span class="badge badge-info">JOIN Users & Prescription</span>
+                            </div>
+                            <div class="analytics-list" id="patientPrescriptionsList">
+                                <div class="loading-state">Loading data...</div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="header-left">
+                                    <i class="fa-solid fa-triangle-exclamation" style="color: var(--warning-color);"></i>
+                                    <h3>Low Stock Warning Table (&lt; 60)</h3>
+                                </div>
+                                <span class="badge badge-warning">Restock Required</span>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table" id="lowStockAnalyticsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Medicine</th>
+                                            <th>Brand</th>
+                                            <th>Stock</th>
+                                            <th>Unit Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td colspan="4" class="loading-cell">Loading low stock items...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL CONTAINER (Dynamic for all forms) -->
+    <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="modalTitle">Modal Title</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
